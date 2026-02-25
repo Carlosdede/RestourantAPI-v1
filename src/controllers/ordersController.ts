@@ -18,9 +18,26 @@ class OrdersController {
           "orders.quantity",
         )
         .join("products", "products.id", "orders.product_id")
-        .where({ table_session_id });
+        .where({ table_session_id })
+        .orderBy("orders.created_at", "desc");
 
       return response.json(orders);
+    } catch (error) {
+      next(error);
+    }
+  }
+  async show(request: Request, response: Response, next: NextFunction) {
+    try {
+      const { table_session_id } = request.params;
+
+      const order = await knex("orders")
+        .select(
+          knex.raw("COALESCE(SUM(orders.quantity), 0) AS Quantidade"),
+          knex.raw("COALESCE(SUM(orders.price * orders.quantity), 0) AS Total"),
+        )
+        .where({ table_session_id });
+
+      return response.json(order);
     } catch (error) {
       next(error);
     }
